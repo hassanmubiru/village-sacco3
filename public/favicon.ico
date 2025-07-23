@@ -1,0 +1,5 @@
+The favicon.ico file is typically a binary file that represents the icon displayed in the browser tab. Since I cannot generate binary files directly, you will need to create or obtain a favicon image and save it as `favicon.ico` in the specified directory.
+
+If you have a specific favicon image, you can use an image editor or an online favicon generator to create the `.ico` file. Once you have the favicon.ico file ready, place it in the `/village-sacco/village-sacco/public/` directory.
+
+If you need further assistance with creating or converting an image to a favicon, please let me know!
