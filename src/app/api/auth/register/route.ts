@@ -97,16 +97,18 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Registration successful',
+        message: bitnobWalletId 
+          ? 'Registration successful with Bitcoin wallet'
+          : 'Registration successful (Bitcoin wallet will be created later)',
         user: {
-          id: user!.id,
-          email: user!.email,
-          name: `${user!.first_name} ${user!.last_name}`,
-          phone: user!.phone,
+          id: user.id,
+          email: user.email,
+          name: `${user.first_name} ${user.last_name}`,
+          phone: user.phone,
           role: 'member',
-          bitnobWalletId: user!.bitnob_wallet_id,
-          kycStatus: user!.kyc_status,
-          created_at: user!.created_at,
+          bitnobWalletId: bitnobWalletId,
+          kycStatus: user.kyc_status,
+          created_at: user.created_at,
         },
       }, { status: 201 });
 
