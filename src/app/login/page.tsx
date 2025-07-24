@@ -46,7 +46,7 @@ export default function LoginPage() {
             console.log('Redirecting to /dashboard');
             window.location.href = '/dashboard';
           }
-        }, 100);
+        }, 500); // Increased delay to 500ms
       } else {
         console.log('Login failed:', result.payload);
         toast.error(result.payload as string || 'Login failed');
@@ -55,7 +55,8 @@ export default function LoginPage() {
       console.error('Login error:', error);
       toast.error('Login failed. Please try again.');
     } finally {
-      setIsLoading(false);
+      // Don't set loading to false immediately to prevent UI flash
+      setTimeout(() => setIsLoading(false), 600);
     }
   };
 
