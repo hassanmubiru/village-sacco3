@@ -49,33 +49,50 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Create Bitcoin wallet with Bitnob
-      const bitnobWallet = await bitnobService.createWallet({
-        email: email,
-        firstName,
-        lastName,
-        phoneNumber: phone,
-      });
-
-      // Create user profile in database
-      const { data: user, error: userError } = await UserService.createUser({
-        id: authData.user.id,
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        phone,
-        bitnob_wallet_id: bitnobWallet.id,
-        kyc_status: 'not_started',
-        is_active: true,
-      });
+      // First, create user profile in database with server client (has admin privileges)
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          phone,
+          kyc_status: 'not_started',
+          is_active: true,
+        })
+        .select()
+        .single();
 
       if (userError) {
+        console.error('User profile creation error:', userError);
         // Clean up auth user if profile creation fails
         await supabase.auth.admin.deleteUser(authData.user.id);
         return NextResponse.json(
-          { message: 'Failed to create user profile: ' + userError },
+          { message: 'Failed to create user profile: ' + userError.message },
           { status: 400 }
         );
+      }
+
+      // Try to create Bitcoin wallet with Bitnob (optional)
+      let bitnobWalletId = null;
+      try {
+        const bitnobWallet = await bitnobService.createWallet({
+          email: email,
+          firstName,
+          lastName,
+          phoneNumber: phone,
+        });
+        bitnobWalletId = bitnobWallet.id;
+
+        // Update user with wallet ID
+        await supabase
+          .from('users')
+          .update({ bitnob_wallet_id: bitnobWalletId })
+          .eq('id', authData.user.id);
+      } catch (bitnobError) {
+        console.warn('Bitnob wallet creation failed (non-critical):', bitnobError);
+        // Don't fail registration if wallet creation fails
       }
 
       return NextResponse.json({
