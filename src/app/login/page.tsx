@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { loginUser } from '../../store/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { loginUser } from '@/store/slices/authSlice';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -29,7 +29,14 @@ export default function LoginPage() {
       
       if (loginUser.fulfilled.match(result)) {
         toast.success('Login successful!');
-        router.push('/dashboard');
+        
+        // Redirect based on user role
+        const userRole = result.payload.user.role;
+        if (userRole === 'admin' || userRole === 'super_admin') {
+          router.push('/admin');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         toast.error(result.payload as string || 'Login failed');
       }

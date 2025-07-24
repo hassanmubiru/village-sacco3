@@ -56,7 +56,7 @@ export const loginUser = createAsyncThunk(
           email: profile.email,
           name: `${profile.first_name} ${profile.last_name}`,
           phone: profile.phone,
-          role: 'member',
+          role: profile.role, // Use actual role from database
           bitnobWalletId: profile.bitnob_wallet_id,
           kycStatus: profile.kyc_status,
           created_at: profile.created_at,
@@ -146,7 +146,7 @@ export const checkAuthStatus = createAsyncThunk(
           email: profile.email,
           name: `${profile.first_name} ${profile.last_name}`,
           phone: profile.phone,
-          role: 'member',
+          role: profile.role, // Use actual role from database
           bitnobWalletId: profile.bitnob_wallet_id,
           kycStatus: profile.kyc_status,
           created_at: profile.created_at,

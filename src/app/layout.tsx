@@ -1,9 +1,7 @@
-'use client';
-
 import React from 'react';
 import './globals.css';
-import { ReduxProvider } from '../store/provider';
-import { Toaster } from 'react-hot-toast';
+import { ReduxProvider } from '@/store/provider';
+import ClientToaster from '@/components/ClientToaster';
 
 export default function RootLayout({
   children,
@@ -11,32 +9,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <ReduxProvider>
           {children}
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#1f2937',
-                color: '#fff',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#10b981',
-                  secondary: '#fff',
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
+          <ClientToaster />
         </ReduxProvider>
       </body>
     </html>
