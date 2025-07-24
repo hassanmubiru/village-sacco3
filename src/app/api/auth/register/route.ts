@@ -112,42 +112,14 @@ export async function POST(request: NextRequest) {
         },
       }, { status: 201 });
 
-    } catch (bitnobError) {
-      // If Bitnob wallet creation fails, still create user but without wallet
-      console.error('Bitnob wallet creation failed:', bitnobError);
-      
-      const { data: user, error: userError } = await UserService.createUser({
-        id: authData.user.id,
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        phone,
-        kyc_status: 'not_started',
-        is_active: true,
-      });
-
-      if (userError) {
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        return NextResponse.json(
-          { message: 'Failed to create user profile: ' + userError },
-          { status: 400 }
-        );
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'Registration successful (Bitcoin wallet will be created later)',
-        user: {
-          id: user!.id,
-          email: user!.email,
-          name: `${user!.first_name} ${user!.last_name}`,
-          phone: user!.phone,
-          role: 'member',
-          bitnobWalletId: null,
-          kycStatus: user!.kyc_status,
-          created_at: user!.created_at,
-        },
-      }, { status: 201 });
+    } catch (registrationError) {
+      console.error('Registration error:', registrationError);
+      // Clean up auth user if anything fails
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json(
+        { message: 'Registration failed: ' + (registrationError instanceof Error ? registrationError.message : 'Unknown error') },
+        { status: 400 }
+      );
     }
 
   } catch (error) {
