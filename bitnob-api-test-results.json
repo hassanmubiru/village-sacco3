@@ -1,0 +1,99 @@
+{
+  "timestamp": "2025-07-24T19:39:07.092Z",
+  "credentials": {
+    "clientId": "25b14d45-273f-4d10-9847-1887286025dc",
+    "secretKey": "hsk.4c1881...",
+    "baseUrl": "https://sandboxapi.bitnob.co"
+  },
+  "results": [
+    {
+      "endpoint": "GET /health",
+      "auth": "secret",
+      "status": 200,
+      "success": true,
+      "response": "{\n  \"status\": \"ok\",\n  \"info\": {\n    \"database\": {\n      \"status\": \"up\"\n    }\n  },\n  \"error\": {},\n  \"details\": {\n    \"database\": {\n      \"status\": \"up\"\n    }\n  }\n}"
+    },
+    {
+      "endpoint": "GET /ping",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot GET /ping\",\n  \"statusCode\": 404,\n  \"path\": \"/ping\",\n  \"timestamp\": \"2025-07-24T19:38:53.705Z\"\n}"
+    },
+    {
+      "endpoint": "GET /wallets",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot GET /wallets\",\n  \"statusCode\": 404,\n  \"path\": \"/wallets\",\n  \"timestamp\": \"2025-07-24T19:38:54.896Z\"\n}"
+    },
+    {
+      "endpoint": "POST /wallets",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot POST /wallets\",\n  \"statusCode\": 404,\n  \"path\": \"/wallets\",\n  \"timestamp\": \"2025-07-24T19:38:56.086Z\"\n}"
+    },
+    {
+      "endpoint": "POST /lightning/invoice",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot POST /lightning/invoice\",\n  \"statusCode\": 404,\n  \"path\": \"/lightning/invoice\",\n  \"timestamp\": \"2025-07-24T19:38:57.264Z\"\n}"
+    },
+    {
+      "endpoint": "POST /lightning/send",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot POST /lightning/send\",\n  \"statusCode\": 404,\n  \"path\": \"/lightning/send\",\n  \"timestamp\": \"2025-07-24T19:38:58.464Z\"\n}"
+    },
+    {
+      "endpoint": "POST /bitcoin/send",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot POST /bitcoin/send\",\n  \"statusCode\": 404,\n  \"path\": \"/bitcoin/send\",\n  \"timestamp\": \"2025-07-24T19:38:59.646Z\"\n}"
+    },
+    {
+      "endpoint": "POST /bitcoin/address",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot POST /bitcoin/address\",\n  \"statusCode\": 404,\n  \"path\": \"/bitcoin/address\",\n  \"timestamp\": \"2025-07-24T19:39:01.215Z\"\n}"
+    },
+    {
+      "endpoint": "GET /rates",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot GET /rates\",\n  \"statusCode\": 404,\n  \"path\": \"/rates\",\n  \"timestamp\": \"2025-07-24T19:39:02.395Z\"\n}"
+    },
+    {
+      "endpoint": "GET /transactions",
+      "auth": "secret",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot GET /transactions\",\n  \"statusCode\": 404,\n  \"path\": \"/transactions\",\n  \"timestamp\": \"2025-07-24T19:39:03.584Z\"\n}"
+    },
+    {
+      "endpoint": "GET /health",
+      "auth": "client",
+      "status": 200,
+      "success": true,
+      "response": "{\n  \"status\": \"ok\",\n  \"info\": {\n    \"database\": {\n      \"status\": \"up\"\n    }\n  },\n  \"error\": {},\n  \"details\": {\n    \"database\": {\n      \"status\": \"up\"\n    }\n  }\n}"
+    },
+    {
+      "endpoint": "GET /wallets",
+      "auth": "client",
+      "status": 404,
+      "success": false,
+      "response": "{\n  \"message\": \"Cannot GET /wallets\",\n  \"statusCode\": 404,\n  \"path\": \"/wallets\",\n  \"timestamp\": \"2025-07-24T19:39:05.975Z\"\n}"
+    }
+  ],
+  "summary": {
+    "total": 12,
+    "successful": 2,
+    "failed": 10
+  }
+}

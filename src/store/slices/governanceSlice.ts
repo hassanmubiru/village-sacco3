@@ -110,7 +110,7 @@ const initialState: GovernanceState = {
 // Async thunks
 export const fetchProposals = createAsyncThunk(
   'governance/fetchProposals',
-  async (saccoGroupId?: string, { rejectWithValue }) => {
+  async (saccoGroupId: string | undefined, { rejectWithValue }) => {
     try {
       let query = supabase
         .from('governance_proposals')
@@ -259,7 +259,7 @@ export const fetchTransactionHistory = createAsyncThunk(
 
 export const fetchAuditLog = createAsyncThunk(
   'governance/fetchAuditLog',
-  async (filters?: { table_name?: string; user_id?: string }, { rejectWithValue }) => {
+  async (filters: { table_name?: string; user_id?: string } | undefined, { rejectWithValue }) => {
     try {
       let query = supabase
         .from('audit_log')

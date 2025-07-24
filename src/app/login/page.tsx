@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { loginUser } from '@/store/slices/authSlice';
+import { supabase } from '@/lib/supabase';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -37,16 +38,14 @@ export default function LoginPage() {
         const userRole = result.payload.user.role;
         console.log('User role:', userRole);
         
-        // Add a small delay to ensure auth state is updated
-        setTimeout(() => {
-          if (userRole === 'admin' || userRole === 'super_admin') {
-            console.log('Redirecting to /admin');
-            window.location.href = '/admin';
-          } else {
-            console.log('Redirecting to /dashboard');
-            window.location.href = '/dashboard';
-          }
-        }, 500); // Increased delay to 500ms
+        // Direct redirect without delay since middleware is temporarily disabled
+        if (userRole === 'admin' || userRole === 'super_admin') {
+          console.log('Redirecting to /admin');
+          router.push('/admin');
+        } else {
+          console.log('Redirecting to /dashboard');
+          router.push('/dashboard');
+        }
       } else {
         console.log('Login failed:', result.payload);
         toast.error(result.payload as string || 'Login failed');
@@ -55,8 +54,7 @@ export default function LoginPage() {
       console.error('Login error:', error);
       toast.error('Login failed. Please try again.');
     } finally {
-      // Don't set loading to false immediately to prevent UI flash
-      setTimeout(() => setIsLoading(false), 600);
+      setIsLoading(false);
     }
   };
 

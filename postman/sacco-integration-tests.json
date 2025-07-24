@@ -1,0 +1,224 @@
+{
+  "info": {
+    "name": "SACCO Platform - Bitnob Integration Tests",
+    "description": "Test the integration between SACCO platform and Bitnob API for personal savings functionality",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "local_base_url",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "test-user-123",
+      "type": "string"
+    },
+    {
+      "key": "sacco_group_id",
+      "value": "test-sacco-456",
+      "type": "string"
+    },
+    {
+      "key": "savings_amount",
+      "value": "10000",
+      "type": "string"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "console.log('🏦 SACCO Platform Integration Test:', pm.info.requestName);",
+          "console.log('🌐 Local URL:', pm.collectionVariables.get('local_base_url'));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Test Personal Savings - Add Money",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Prepare test data for adding savings",
+              "const testData = {",
+              "    userId: pm.collectionVariables.get('user_id'),",
+              "    saccoGroupId: pm.collectionVariables.get('sacco_group_id'),",
+              "    amount: parseFloat(pm.collectionVariables.get('savings_amount')),",
+              "    paymentMethod: 'lightning',",
+              "    description: 'Test savings deposit via Postman'",
+              "};",
+              "",
+              "pm.request.body.raw = JSON.stringify(testData);",
+              "console.log('💰 Adding savings:', testData.amount, 'satoshis');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Savings addition request successful', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Response contains payment invoice', function () {",
+              "    pm.expect(response).to.have.property('success', true);",
+              "    pm.expect(response).to.have.property('data');",
+              "});",
+              "",
+              "if (response.success && response.data) {",
+              "    console.log('✅ Savings API working correctly');",
+              "    if (response.data.paymentRequest) {",
+              "        console.log('⚡ Lightning Invoice:', response.data.paymentRequest);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{local_base_url}}/api/savings/add",
+          "host": ["{{local_base_url}}"],
+          "path": ["api", "savings", "add"]
+        },
+        "description": "Test adding money to personal savings through SACCO platform"
+      }
+    },
+    {
+      "name": "Test Personal Savings - Get Balance",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Savings balance retrieved', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Balance data is valid', function () {",
+              "    pm.expect(response).to.have.property('success', true);",
+              "    pm.expect(response).to.have.property('data');",
+              "});",
+              "",
+              "if (response.data) {",
+              "    console.log('💰 Current Savings Balance:', response.data.balance);",
+              "    console.log('📈 Total Contributions:', response.data.total_contributions);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{local_base_url}}/api/savings?userId={{user_id}}&saccoGroupId={{sacco_group_id}}",
+          "host": ["{{local_base_url}}"],
+          "path": ["api", "savings"],
+          "query": [
+            {
+              "key": "userId",
+              "value": "{{user_id}}"
+            },
+            {
+              "key": "saccoGroupId",
+              "value": "{{sacco_group_id}}"
+            }
+          ]
+        },
+        "description": "Get current personal savings balance"
+      }
+    },
+    {
+      "name": "Test Personal Savings - Withdraw",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Prepare withdrawal test data",
+              "const withdrawData = {",
+              "    userId: pm.collectionVariables.get('user_id'),",
+              "    saccoGroupId: pm.collectionVariables.get('sacco_group_id'),",
+              "    amount: 5000, // Withdraw 5000 satoshis",
+              "    withdrawalMethod: 'lightning',",
+              "    destination: 'lnbc...', // Lightning address or invoice",
+              "    description: 'Test withdrawal via Postman'",
+              "};",
+              "",
+              "pm.request.body.raw = JSON.stringify(withdrawData);",
+              "console.log('💸 Testing withdrawal of:', withdrawData.amount, 'satoshis');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Withdrawal request processed', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Withdrawal response is valid', function () {",
+              "    pm.expect(response).to.have.property('success');",
+              "});",
+              "",
+              "if (response.success) {",
+              "    console.log('✅ Withdrawal processed successfully');",
+              "} else {",
+              "    console.log('⚠️ Withdrawal failed:', response.message);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{local_base_url}}/api/savings/withdraw",
+          "host": ["{{local_base_url}}"],
+          "path": ["api", "savings", "withdraw"]
+        },
+        "description": "Test withdrawing money from personal savings"
+      }
+    }
+  ]
+}

@@ -3,8 +3,9 @@ import { SaccoGroupService } from '../../../../../services/sacco.service';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
     const { userId, action } = await request.json();
 
@@ -16,7 +17,7 @@ export async function POST(
     }
 
     if (action === 'join') {
-      const { data, error } = await SaccoGroupService.joinSaccoGroup(userId, params.id);
+      const { data, error } = await SaccoGroupService.joinSaccoGroup(userId, resolvedParams.id);
       if (error) {
         return NextResponse.json({ message: error }, { status: 400 });
       }
@@ -29,7 +30,7 @@ export async function POST(
     }
 
     if (action === 'leave') {
-      const { error } = await SaccoGroupService.leaveSaccoGroup(userId, params.id);
+      const { error } = await SaccoGroupService.leaveSaccoGroup(userId, resolvedParams.id);
       if (error) {
         return NextResponse.json({ message: error }, { status: 400 });
       }

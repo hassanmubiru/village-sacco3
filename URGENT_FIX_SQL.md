@@ -14,6 +14,7 @@ Copy and paste the following SQL into your **Supabase SQL Editor** and run it:
 -- First, drop ALL existing policies on users table
 DROP POLICY IF EXISTS "Users can view own profile" ON public.users;
 DROP POLICY IF EXISTS "Users can update own profile" ON public.users;
+DROP POLICY IF EXISTS "Allow user registration" ON public.users;
 DROP POLICY IF EXISTS "Admins can view all users" ON public.users;
 DROP POLICY IF EXISTS "Admins can update user profiles" ON public.users;
 

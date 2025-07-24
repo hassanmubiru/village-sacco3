@@ -118,14 +118,46 @@ export class BitnobService {
         console.warn('Bitnob API key not configured');
         return false;
       }
-      
-      // Try a simple ping/health check
-      await this.makeRequest('/api/v1/ping');
-      return true;
+
+      // Test with health endpoint
+      const response = await this.makeRequest('/health');
+      return response && response.status === 'ok';
     } catch (error) {
-      console.warn('Bitnob service unavailable:', error);
+      console.error('Bitnob service availability check failed:', error);
       return false;
     }
+  }
+
+  // Test available endpoints
+  async testEndpoints(): Promise<{ [key: string]: boolean }> {
+    const endpoints = [
+      '/health',
+      '/ping', 
+      '/wallets',
+      '/lightning/invoice',
+      '/lightning/send',
+      '/bitcoin/send',
+      '/rates'
+    ];
+
+    const results: { [key: string]: boolean } = {};
+
+    for (const endpoint of endpoints) {
+      try {
+        const response = await fetch(`${this.baseURL}${endpoint}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${this.config.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        results[endpoint] = response.status !== 404;
+      } catch (error) {
+        results[endpoint] = false;
+      }
+    }
+
+    return results;
   }
 
   // Authentication and User Management
@@ -137,7 +169,7 @@ export class BitnobService {
         throw new Error('Bitnob service is currently unavailable');
       }
 
-      const response = await this.makeRequest('/api/v1/wallets/create', 'POST', {
+      const response = await this.makeRequest('/wallets/create', 'POST', {
         phoneNumber: userData.phoneNumber,
         email: userData.email,
         firstName: userData.firstName,
@@ -154,7 +186,7 @@ export class BitnobService {
 
   async getWalletDetails(walletId: string) {
     try {
-      const response = await this.makeRequest(`/api/v1/wallets/${walletId}`);
+      const response = await this.makeRequest(`/wallets/${walletId}`);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to get wallet details: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -163,7 +195,7 @@ export class BitnobService {
 
   async getWalletBalance(walletId: string) {
     try {
-      const response = await this.makeRequest(`/api/v1/wallets/${walletId}/balance`);
+      const response = await this.makeRequest(`/wallets/${walletId}/balance`);
       return response.data;
     } catch (error) {
       throw new Error(`Balance inquiry failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -173,24 +205,30 @@ export class BitnobService {
   // Lightning Network Operations
   async sendLightningPayment(paymentData: PaymentData) {
     try {
-      const response = await this.makeRequest('/api/v1/lightning/send', 'POST', {
+      // Check if service is available first
+      const isAvailable = await this.isServiceAvailable();
+      if (!isAvailable) {
+        throw new Error('Bitnob service is currently unavailable. Please try again later.');
+      }
+
+      const response = await this.makeRequest('/lightning/send', 'POST', {
         amount: paymentData.amount,
-        currency: paymentData.currency,
-        recipientId: paymentData.recipientId,
-        phoneNumber: paymentData.phoneNumber,
-        email: paymentData.email,
         reference: paymentData.reference,
         narration: paymentData.narration || 'SACCO Platform Payment',
       });
       return response.data;
     } catch (error) {
+      console.error('Lightning payment error:', error);
+      if (error instanceof Error && error.message.includes('404')) {
+        throw new Error('Lightning payment service is temporarily unavailable. The API endpoint may have changed. Please contact support.');
+      }
       throw new Error(`Lightning payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async createLightningInvoice(invoiceData: LightningInvoiceData) {
     try {
-      const response = await this.makeRequest('/api/v1/lightning/invoice', 'POST', {
+      const response = await this.makeRequest('/lightning/invoice', 'POST', {
         amount: invoiceData.amount,
         currency: invoiceData.currency,
         reference: invoiceData.reference,
@@ -205,7 +243,7 @@ export class BitnobService {
 
   async payLightningInvoice(invoice: string, walletId: string) {
     try {
-      const response = await this.makeRequest('/api/v1/lightning/pay', 'POST', {
+      const response = await this.makeRequest('/lightning/pay', 'POST', {
         invoice,
         walletId,
       });
@@ -218,7 +256,7 @@ export class BitnobService {
   // Bitcoin On-Chain Operations
   async sendBitcoin(paymentData: PaymentData & { address: string }) {
     try {
-      const response = await this.makeRequest('/api/v1/bitcoin/send', 'POST', {
+      const response = await this.makeRequest('/bitcoin/send', 'POST', {
         amount: paymentData.amount,
         address: paymentData.address,
         reference: paymentData.reference,
@@ -232,7 +270,7 @@ export class BitnobService {
 
   async generateBitcoinAddress(walletId: string) {
     try {
-      const response = await this.makeRequest(`/api/v1/bitcoin/address/${walletId}`, 'POST');
+      const response = await this.makeRequest(`/bitcoin/address/${walletId}`, 'POST');
       return response.data;
     } catch (error) {
       throw new Error(`Address generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -252,7 +290,7 @@ export class BitnobService {
         }
       });
 
-      const response = await fetch(`${this.baseURL}/api/v1/kyc/submit`, {
+      const response = await fetch(`${this.baseURL}/kyc/submit`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
@@ -274,7 +312,7 @@ export class BitnobService {
 
   async getKYCStatus(userId: string) {
     try {
-      const response = await this.makeRequest(`/api/v1/kyc/status/${userId}`);
+      const response = await this.makeRequest(`/kyc/status/${userId}`);
       return response.data;
     } catch (error) {
       throw new Error(`KYC status check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -284,7 +322,7 @@ export class BitnobService {
   // Currency Conversion
   async convertBTCToFiat(conversionData: ConversionData) {
     try {
-      const response = await this.makeRequest('/api/v1/convert', 'POST', {
+      const response = await this.makeRequest('/convert', 'POST', {
         amount: conversionData.amount,
         fromCurrency: conversionData.fromCurrency,
         toCurrency: conversionData.toCurrency,
@@ -298,7 +336,7 @@ export class BitnobService {
 
   async getExchangeRates(baseCurrency: string = 'BTC') {
     try {
-      const response = await this.makeRequest(`/api/v1/rates?base=${baseCurrency}`);
+      const response = await this.makeRequest(`/rates?base=${baseCurrency}`);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to get exchange rates: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -309,7 +347,7 @@ export class BitnobService {
   async getTransactionHistory(walletId: string, limit: number = 50, offset: number = 0) {
     try {
       const response = await this.makeRequest(
-        `/api/v1/transactions?walletId=${walletId}&limit=${limit}&offset=${offset}`
+        `/transactions?walletId=${walletId}&limit=${limit}&offset=${offset}`
       );
       return response.data;
     } catch (error) {
@@ -319,7 +357,7 @@ export class BitnobService {
 
   async getTransactionDetails(transactionId: string) {
     try {
-      const response = await this.makeRequest(`/api/v1/transactions/${transactionId}`);
+      const response = await this.makeRequest(`/transactions/${transactionId}`);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to get transaction details: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -350,7 +388,7 @@ export class BitnobService {
   // Health check
   async healthCheck() {
     try {
-      const response = await this.makeRequest('/api/v1/health');
+      const response = await this.makeRequest('/health');
       return response;
     } catch (error) {
       throw new Error(`Health check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -363,11 +401,18 @@ let bitnobServiceInstance: BitnobService | null = null;
 
 export function createBitnobService(config?: BitnobConfig): BitnobService {
   if (!bitnobServiceInstance || config) {
-    const apiKey = process.env.NEXT_PUBLIC_BITNOB_API_KEY || '';
+    // Use new environment variable names
+    const clientId = process.env.BITNOB_CLIENT_ID || '';
+    const secretKey = process.env.BITNOB_SECRET_KEY || '';
+    const baseURL = process.env.BITNOB_BASE_URL || '';
+    
+    // Use secret key as the API key for authentication
+    const apiKey = secretKey;
+    
     const serviceConfig = config || {
       apiKey,
-      environment: (process.env.NEXT_PUBLIC_BITNOB_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox',
-      baseURL: process.env.NEXT_PUBLIC_BITNOB_BASE_URL,
+      environment: baseURL.includes('sandbox') ? 'sandbox' : 'production',
+      baseURL: baseURL.replace('/api/v1', ''), // Remove /api/v1 from base URL since endpoints don't use it
     };
 
     // Warn if API key is missing

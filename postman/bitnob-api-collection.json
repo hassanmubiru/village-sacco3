@@ -1,0 +1,601 @@
+{
+  "info": {
+    "name": "Bitnob API Testing Collection",
+    "description": "Comprehensive testing collection for Bitnob API integration in Village SACCO platform",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://sandboxapi.bitnob.co",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{BITNOB_API_KEY}}",
+      "type": "string"
+    },
+    {
+      "key": "wallet_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invoice_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_reference",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{api_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "console.log('🚀 Starting Bitnob API test:', pm.info.requestName);",
+          "",
+          "// Set timestamp for reference generation",
+          "pm.globals.set('timestamp', Date.now());",
+          "",
+          "// Generate unique reference for payments",
+          "const reference = 'SACCO_' + pm.globals.get('timestamp');",
+          "pm.collectionVariables.set('payment_reference', reference);",
+          "",
+          "// Log current environment",
+          "console.log('🌍 Environment: Sandbox');",
+          "console.log('🔗 Base URL:', pm.collectionVariables.get('base_url'));"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "console.log('✅ Response Status:', pm.response.code);",
+          "console.log('⏱️ Response Time:', pm.response.responseTime + 'ms');",
+          "",
+          "// Basic response validation",
+          "pm.test('Response status is successful', function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 202]);",
+          "});",
+          "",
+          "pm.test('Response time is acceptable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(10000);",
+          "});",
+          "",
+          "// Log response for debugging",
+          "if (pm.response.code >= 400) {",
+          "    console.error('❌ Error Response:', pm.response.text());",
+          "} else {",
+          "    console.log('📄 Response Body:', pm.response.json());",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Health check successful', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('API is healthy', function () {",
+              "    pm.expect(response).to.have.property('status');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Check if Bitnob API is healthy and accessible"
+      }
+    },
+    {
+      "name": "Ping API",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Ping successful', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "console.log('🏓 Ping response received');"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/ping",
+          "host": ["{{base_url}}"],
+          "path": ["ping"]
+        },
+        "description": "Simple ping to test API connectivity"
+      }
+    },
+    {
+      "name": "Create Wallet",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Generate unique wallet name",
+              "const walletName = 'SACCO_Wallet_' + pm.globals.get('timestamp');",
+              "pm.request.body.raw = JSON.stringify({",
+              "    name: walletName,",
+              "    description: 'SACCO Platform Test Wallet'",
+              "});",
+              "",
+              "console.log('📱 Creating wallet:', walletName);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Wallet created successfully', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Response contains wallet data', function () {",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.data).to.have.property('id');",
+              "});",
+              "",
+              "// Store wallet ID for subsequent requests",
+              "if (response.data && response.data.id) {",
+              "    pm.collectionVariables.set('wallet_id', response.data.id);",
+              "    console.log('💰 Wallet ID saved:', response.data.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{base_url}}/wallets/create",
+          "host": ["{{base_url}}"],
+          "path": ["wallets", "create"]
+        },
+        "description": "Create a new Bitcoin wallet for testing"
+      }
+    },
+    {
+      "name": "Get Wallet Details",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const walletId = pm.collectionVariables.get('wallet_id');",
+              "if (!walletId) {",
+              "    throw new Error('❌ No wallet ID found. Please run \"Create Wallet\" first.');",
+              "}",
+              "console.log('🔍 Getting details for wallet:', walletId);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Wallet details retrieved', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Wallet data is valid', function () {",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.data).to.have.property('balance');",
+              "});",
+              "",
+              "console.log('💰 Wallet Balance:', response.data.balance);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/wallets/{{wallet_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["wallets", "{{wallet_id}}"]
+        },
+        "description": "Get details of the created wallet"
+      }
+    },
+    {
+      "name": "Get Wallet Balance",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const walletId = pm.collectionVariables.get('wallet_id');",
+              "if (!walletId) {",
+              "    throw new Error('❌ No wallet ID found. Please run \"Create Wallet\" first.');",
+              "}",
+              "console.log('💰 Checking balance for wallet:', walletId);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Balance retrieved successfully', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Balance data is valid', function () {",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.data).to.have.property('available_balance');",
+              "});",
+              "",
+              "console.log('💵 Available Balance:', response.data.available_balance);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/wallets/{{wallet_id}}/balance",
+          "host": ["{{base_url}}"],
+          "path": ["wallets", "{{wallet_id}}", "balance"]
+        },
+        "description": "Check the current balance of the wallet"
+      }
+    },
+    {
+      "name": "Create Lightning Invoice",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const walletId = pm.collectionVariables.get('wallet_id');",
+              "if (!walletId) {",
+              "    throw new Error('❌ No wallet ID found. Please run \"Create Wallet\" first.');",
+              "}",
+              "",
+              "// Create invoice for 1000 satoshis (0.00001 BTC)",
+              "const invoiceData = {",
+              "    amount: 1000,",
+              "    description: 'SACCO Platform Savings Deposit Test',",
+              "    reference: pm.collectionVariables.get('payment_reference'),",
+              "    walletId: walletId",
+              "};",
+              "",
+              "pm.request.body.raw = JSON.stringify(invoiceData);",
+              "console.log('⚡ Creating Lightning invoice for 1000 sats');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Lightning invoice created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Invoice contains payment request', function () {",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.data).to.have.property('payment_request');",
+              "});",
+              "",
+              "// Store invoice ID for testing",
+              "if (response.data && response.data.id) {",
+              "    pm.collectionVariables.set('invoice_id', response.data.id);",
+              "    console.log('⚡ Invoice ID saved:', response.data.id);",
+              "    console.log('💰 Payment Request:', response.data.payment_request);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{base_url}}/lightning/invoice",
+          "host": ["{{base_url}}"],
+          "path": ["lightning", "invoice"]
+        },
+        "description": "Create a Lightning Network invoice for receiving payments"
+      }
+    },
+    {
+      "name": "Send Lightning Payment",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const walletId = pm.collectionVariables.get('wallet_id');",
+              "if (!walletId) {",
+              "    throw new Error('❌ No wallet ID found. Please run \"Create Wallet\" first.');",
+              "}",
+              "",
+              "// Example Lightning invoice for testing (use a real testnet invoice)",
+              "const paymentData = {",
+              "    invoice: 'lnbc10u1p3xnhl2pp5jptserfk3zk4qy42tlucycrfwxhydvlemu9pqr93tuzlv9cc7g3sdqsvfhkcap3xyhx7un8cqzpgxqzjcsp5f8c52y2stc300gl6s4xswtjpc37hrnnr3c9wvtgjfuvqmpm35evq9qyyssqy4lgd8tj637qcjp05rdpxxykjenthxftej7a2zzmwrmrl70fyj9hvj0rewhzj7jfyuwkwycg8k4bf0l5p84nljfm6km5hpv4dhp4jc4cw5j9', // Replace with actual invoice",
+              "    amount: 1000,",
+              "    reference: pm.collectionVariables.get('payment_reference'),",
+              "    narration: 'SACCO Platform Test Payment'",
+              "};",
+              "",
+              "pm.request.body.raw = JSON.stringify(paymentData);",
+              "console.log('⚡ Sending Lightning payment for 1000 sats');",
+              "console.log('⚠️ Note: Replace invoice with a real testnet invoice for actual testing');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Note: This will likely fail without a valid invoice",
+              "if (pm.response.code === 200 || pm.response.code === 201) {",
+              "    pm.test('Lightning payment sent successfully', function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "    ",
+              "    const response = pm.response.json();",
+              "    console.log('⚡ Payment successful:', response);",
+              "} else {",
+              "    console.log('⚠️ Payment failed (expected with dummy invoice)');",
+              "    console.log('Response:', pm.response.text());",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{base_url}}/lightning/send",
+          "host": ["{{base_url}}"],
+          "path": ["lightning", "send"]
+        },
+        "description": "Send a Lightning Network payment (requires valid invoice)"
+      }
+    },
+    {
+      "name": "Generate Bitcoin Address",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const walletId = pm.collectionVariables.get('wallet_id');",
+              "if (!walletId) {",
+              "    throw new Error('❌ No wallet ID found. Please run \"Create Wallet\" first.');",
+              "}",
+              "console.log('🏠 Generating Bitcoin address for wallet:', walletId);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Bitcoin address generated', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Address is valid', function () {",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.data).to.have.property('address');",
+              "});",
+              "",
+              "console.log('🏠 Bitcoin Address:', response.data.address);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/bitcoin/address/{{wallet_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["bitcoin", "address", "{{wallet_id}}"]
+        },
+        "description": "Generate a new Bitcoin address for receiving funds"
+      }
+    },
+    {
+      "name": "Get Exchange Rates",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Exchange rates retrieved', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('Rates data is valid', function () {",
+              "    pm.expect(response).to.have.property('data');",
+              "});",
+              "",
+              "if (response.data) {",
+              "    console.log('💱 Current BTC rates:', JSON.stringify(response.data, null, 2));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/rates?base=BTC",
+          "host": ["{{base_url}}"],
+          "path": ["rates"],
+          "query": [
+            {
+              "key": "base",
+              "value": "BTC"
+            }
+          ]
+        },
+        "description": "Get current Bitcoin exchange rates"
+      }
+    },
+    {
+      "name": "Get Transaction History",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const walletId = pm.collectionVariables.get('wallet_id');",
+              "if (!walletId) {",
+              "    throw new Error('❌ No wallet ID found. Please run \"Create Wallet\" first.');",
+              "}",
+              "console.log('📜 Getting transaction history for wallet:', walletId);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Transaction history retrieved', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const response = pm.response.json();",
+              "pm.test('History data is valid', function () {",
+              "    pm.expect(response).to.have.property('data');",
+              "    pm.expect(response.data).to.be.an('array');",
+              "});",
+              "",
+              "console.log('📜 Transaction count:', response.data.length);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/transactions?walletId={{wallet_id}}&limit=10&offset=0",
+          "host": ["{{base_url}}"],
+          "path": ["transactions"],
+          "query": [
+            {
+              "key": "walletId",
+              "value": "{{wallet_id}}"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "Get transaction history for the wallet"
+      }
+    }
+  ]
+}

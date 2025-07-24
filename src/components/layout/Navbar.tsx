@@ -21,7 +21,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-blue-600 text-white shadow-lg">
+    <nav className="bg-blue-200 text-white shadow-lg">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
@@ -29,20 +29,20 @@ export default function Navbar() {
               Village SACCO
             </Link>
             <div className="hidden md:flex space-x-6">
-              <Link href="/dashboard" className="hover:text-blue-200 transition-colors">
+              <Link href="/dashboard" className="hover:text-blue-500 transition-colors">
                 Dashboard
               </Link>
-              <Link href="/sacco" className="hover:text-blue-200 transition-colors">
+              <Link href="/sacco" className="hover:text-blue-500 transition-colors">
                 SACCO Groups
               </Link>
-              <Link href="/transactions" className="hover:text-blue-200 transition-colors">
+              <Link href="/transactions" className="hover:text-blue-500 transition-colors">
                 Transactions
               </Link>
-              <Link href="/wallet" className="hover:text-blue-200 transition-colors">
+              <Link href="/wallet" className="hover:text-blue-500 transition-colors">
                 Wallet
               </Link>
               {(user?.role === 'admin' || user?.role === 'super_admin') && (
-                <Link href="/admin" className="hover:text-blue-200 transition-colors bg-blue-700 px-3 py-1 rounded">
+                <Link href="/admin" className="hover:text-blue-500 transition-colors bg-blue-700 px-3 py-1 rounded">
                   Admin
                 </Link>
               )}
