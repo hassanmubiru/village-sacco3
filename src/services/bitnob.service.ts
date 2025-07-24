@@ -70,6 +70,10 @@ export class BitnobService {
 
   private async makeRequest(endpoint: string, method: string = 'GET', data?: any) {
     try {
+      // Create timeout controller
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch(`${this.baseURL}${endpoint}`, {
         method,
         headers: {
@@ -78,7 +82,10 @@ export class BitnobService {
           'Accept': 'application/json',
         },
         body: data ? JSON.stringify(data) : undefined,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -88,13 +95,42 @@ export class BitnobService {
       return await response.json();
     } catch (error) {
       console.error('Bitnob Service Error:', error);
+      
+      // Handle specific network errors
+      if (error instanceof Error) {
+        if (error.message.includes('getaddrinfo ENOTFOUND') || error.message.includes('fetch failed')) {
+          throw new Error('Bitnob service is currently unavailable. Please try again later.');
+        }
+        if (error.name === 'AbortError') {
+          throw new Error('Bitnob service request timed out. Please try again.');
+        }
+      }
+      
       throw error;
+    }
+  }
+
+  // Check if Bitnob service is available
+  async isServiceAvailable(): Promise<boolean> {
+    try {
+      // Try a simple ping/health check
+      await this.makeRequest('/api/v1/ping');
+      return true;
+    } catch (error) {
+      console.warn('Bitnob service unavailable:', error);
+      return false;
     }
   }
 
   // Authentication and User Management
   async createWallet(userData: WalletData) {
     try {
+      // First check if service is available
+      const isAvailable = await this.isServiceAvailable();
+      if (!isAvailable) {
+        throw new Error('Bitnob service is currently unavailable');
+      }
+
       const response = await this.makeRequest('/api/v1/wallets/create', 'POST', {
         phoneNumber: userData.phoneNumber,
         email: userData.email,
@@ -105,6 +141,7 @@ export class BitnobService {
       });
       return response.data;
     } catch (error) {
+      console.error('Bitnob wallet creation error:', error);
       throw new Error(`Wallet creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
