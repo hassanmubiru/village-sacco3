@@ -30,17 +30,29 @@ export default function LoginPage() {
       if (loginUser.fulfilled.match(result)) {
         toast.success('Login successful!');
         
+        // Debug: Log the user data
+        console.log('Login result:', result.payload);
+        
         // Redirect based on user role
         const userRole = result.payload.user.role;
-        if (userRole === 'admin' || userRole === 'super_admin') {
-          router.push('/admin');
-        } else {
-          router.push('/dashboard');
-        }
+        console.log('User role:', userRole);
+        
+        // Add a small delay to ensure auth state is updated
+        setTimeout(() => {
+          if (userRole === 'admin' || userRole === 'super_admin') {
+            console.log('Redirecting to /admin');
+            window.location.href = '/admin';
+          } else {
+            console.log('Redirecting to /dashboard');
+            window.location.href = '/dashboard';
+          }
+        }, 100);
       } else {
+        console.log('Login failed:', result.payload);
         toast.error(result.payload as string || 'Login failed');
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast.error('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
