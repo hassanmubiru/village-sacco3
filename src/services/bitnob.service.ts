@@ -113,6 +113,12 @@ export class BitnobService {
   // Check if Bitnob service is available
   async isServiceAvailable(): Promise<boolean> {
     try {
+      // Check if API key is configured
+      if (!this.config.apiKey) {
+        console.warn('Bitnob API key not configured');
+        return false;
+      }
+      
       // Try a simple ping/health check
       await this.makeRequest('/api/v1/ping');
       return true;
@@ -357,11 +363,17 @@ let bitnobServiceInstance: BitnobService | null = null;
 
 export function createBitnobService(config?: BitnobConfig): BitnobService {
   if (!bitnobServiceInstance || config) {
+    const apiKey = process.env.NEXT_PUBLIC_BITNOB_API_KEY || '';
     const serviceConfig = config || {
-      apiKey: process.env.NEXT_PUBLIC_BITNOB_API_KEY || '',
+      apiKey,
       environment: (process.env.NEXT_PUBLIC_BITNOB_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox',
       baseURL: process.env.NEXT_PUBLIC_BITNOB_BASE_URL,
     };
+
+    // Warn if API key is missing
+    if (!apiKey) {
+      console.warn('Bitnob API key not configured. Bitcoin wallet features will be disabled.');
+    }
 
     bitnobServiceInstance = new BitnobService(serviceConfig);
   }
