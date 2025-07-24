@@ -74,3 +74,4 @@ Once you have admin access, you can:
 - Admin access is protected by middleware
 - Only users with 'admin' or 'super_admin' roles can access admin routes
 - Non-admin users are redirected to the regular dashboard
+
