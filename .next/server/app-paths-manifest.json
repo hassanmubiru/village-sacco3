@@ -1,5 +1,1 @@
-{
-  "/setup/admin/page": "app/setup/admin/page.js",
-  "/api/setup/admin/route": "app/api/setup/admin/route.js",
-  "/login/page": "app/login/page.js"
-}
+{}
