@@ -47,6 +47,28 @@ yarn dev
 ```
 The application will be available at `http://localhost:3000`.
 
+## Quick Start - Admin Access
+
+### First Time Setup
+1. **Start the application**: `npm run dev`
+2. **Create admin user**: Go to `http://localhost:3000/setup/admin`
+3. **Fill the form**:
+   - Email: Your admin email
+   - Name: Your full name  
+   - Phone: Your phone number
+   - Password: Minimum 6 characters
+   - Setup Key: `village-sacco-setup-2024`
+4. **Login**: After setup, login at `http://localhost:3000/login`
+5. **Access admin dashboard**: Navigate to `http://localhost:3000/admin`
+
+### Key URLs
+- **Home**: `http://localhost:3000/`
+- **Login**: `http://localhost:3000/login`
+- **Signup**: `http://localhost:3000/signup`
+- **User Dashboard**: `http://localhost:3000/dashboard`
+- **Admin Dashboard**: `http://localhost:3000/admin` (requires admin role)
+- **Admin Setup**: `http://localhost:3000/setup/admin` (first-time only)
+
 ### Building for Production
 To build the application for production, run:
 ```

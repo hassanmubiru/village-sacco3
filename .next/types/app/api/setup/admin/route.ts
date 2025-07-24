@@ -1,8 +1,8 @@
-// File: /home/error51/bitnob/project/village-sacco/src/app/api/auth/register/route.ts
-import * as entry from '../../../../../../src/app/api/auth/register/route.js'
+// File: /home/error51/bitnob/project/village-sacco/src/app/api/setup/admin/route.ts
+import * as entry from '../../../../../../src/app/api/setup/admin/route.js'
 import type { NextRequest } from 'next/server.js'
 
-type TEntry = typeof import('../../../../../../src/app/api/auth/register/route.js')
+type TEntry = typeof import('../../../../../../src/app/api/setup/admin/route.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{
