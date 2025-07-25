@@ -11,6 +11,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/login/page.js"
     ],
+    "/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/page.js"
+    ],
     "/(dashboard)/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -21,10 +26,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(dashboard)/dashboard/page.js"
     ],
-    "/(dashboard)/wallet/page": [
+    "/api/dashboard/summary/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(dashboard)/wallet/page.js"
+      "static/chunks/app/api/dashboard/summary/route.js"
     ],
     "/(dashboard)/sacco/page": [
       "static/chunks/webpack.js",
@@ -36,6 +41,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/sacco-groups/route.js"
     ],
+    "/api/bitnob/deposit/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/bitnob/deposit/route.js"
+    ],
     "/api/savings/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -46,6 +56,11 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/savings/add/route.js"
     ],
+    "/api/savings/withdraw/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/savings/withdraw/route.js"
+    ],
     "/api/bitnob/virtual-card/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -55,51 +70,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/sacco-groups/join/route.js"
-    ],
-    "/api/bitnob/deposit/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/bitnob/deposit/route.js"
-    ],
-    "/(dashboard)/transactions/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(dashboard)/transactions/page.js"
-    ],
-    "/(dashboard)/admin/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(dashboard)/admin/page.js"
-    ],
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
-    ],
-    "/signup/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/signup/page.js"
-    ],
-    "/api/auth/register/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/auth/register/route.js"
-    ],
-    "/api/sacco-groups/approve-membership/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/sacco-groups/approve-membership/route.js"
-    ],
-    "/api/savings/withdraw/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/savings/withdraw/route.js"
-    ],
-    "/_not-found/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
     ]
   }
 }

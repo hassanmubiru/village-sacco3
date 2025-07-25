@@ -1,7 +1,7 @@
 {
+  "/api/bitnob/virtual-card/route": "app/api/bitnob/virtual-card/route.js",
+  "/api/sacco-groups/join/route": "app/api/sacco-groups/join/route.js",
   "/login/page": "app/login/page.js",
-  "/test-savings/page": "app/test-savings/page.js",
   "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
-  "/(dashboard)/sacco/page": "app/(dashboard)/sacco/page.js",
-  "/(dashboard)/transactions/page": "app/(dashboard)/transactions/page.js"
+  "/(dashboard)/sacco/page": "app/(dashboard)/sacco/page.js"
 }

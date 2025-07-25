@@ -1,17 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { supabase } from '../../lib/supabase';
-
-interface User {
-  id: string;
-  email: string;
-  phone?: string;
-  name: string;
-  role: string;
-  bitnobWalletId?: string;
-  kycStatus?: string;
-  isVerified?: boolean;
-  created_at: string;
-}
+import { User } from '../../types';
 
 interface AuthState {
   user: User | null;
@@ -54,12 +43,15 @@ export const loginUser = createAsyncThunk(
         user: {
           id: profile.id,
           email: profile.email,
-          name: `${profile.first_name} ${profile.last_name}`,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
           phone: profile.phone,
-          role: profile.role, // Use actual role from database
-          bitnobWalletId: profile.bitnob_wallet_id,
-          kycStatus: profile.kyc_status,
+          bitnob_wallet_id: profile.bitnob_wallet_id,
+          kyc_status: profile.kyc_status,
+          is_active: profile.is_active,
           created_at: profile.created_at,
+          updated_at: profile.updated_at,
+          name: `${profile.first_name} ${profile.last_name}`, // Keep for backward compatibility
         },
         token: data.session?.access_token || '',
       };
@@ -144,12 +136,15 @@ export const checkAuthStatus = createAsyncThunk(
         user: {
           id: profile.id,
           email: profile.email,
-          name: `${profile.first_name} ${profile.last_name}`,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
           phone: profile.phone,
-          role: profile.role, // Use actual role from database
-          bitnobWalletId: profile.bitnob_wallet_id,
-          kycStatus: profile.kyc_status,
+          bitnob_wallet_id: profile.bitnob_wallet_id,
+          kyc_status: profile.kyc_status,
+          is_active: profile.is_active,
           created_at: profile.created_at,
+          updated_at: profile.updated_at,
+          name: `${profile.first_name} ${profile.last_name}`, // Keep for backward compatibility
         },
         token: session.access_token,
       };

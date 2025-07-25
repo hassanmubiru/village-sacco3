@@ -7,8 +7,15 @@ export * from './bitnob.types';
 export interface User {
     id: string;
     email: string;
-    name?: string;
-    createdAt: string;
+    first_name: string;
+    last_name: string;
+    phone?: string;
+    bitnob_wallet_id?: string;
+    kyc_status: 'pending' | 'approved' | 'rejected' | 'not_started';
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    name?: string; // Keep for backward compatibility
 }
 
 export interface AuthResponse {
