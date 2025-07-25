@@ -69,9 +69,9 @@ export async function POST(request: NextRequest) {
         type: 'deposit',
         amount: amount,
         status: 'pending',
-        reference: bitnobPayment.reference,
-        bitnob_payment_id: bitnobPayment.id,
-        created_at: bitnobPayment.created_at
+        description: `Bitnob payment deposit - ${bitnobPayment.reference}`,
+        payment_method: 'lightning',
+        bitnob_transaction_id: bitnobPayment.id
       })
       .select()
       .single();

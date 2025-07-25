@@ -1,53 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { fetchTransactionHistory } from '../../../store/slices/walletSlice';
-import { WalletDashboard } from '../../../components/wallet/WalletDashboard';
-import { WalletBalance } from '../../../components/wallet/WalletComponents';
-import { SendPaymentForm, ReceivePaymentForm } from '../../../components/wallet/WalletComponents';
-import { formatBTC, formatCurrency, formatTimeAgo, formatTransactionStatus, truncateHash } from '../../../utils/bitnob.utils';
+import React from 'react';
+import { SimplifiedWalletDashboard } from '../../../components/wallet/SimplifiedWalletDashboard';
 
 export default function WalletPage() {
-  const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
-  const { transactions, loading } = useAppSelector((state) => state.wallet);
-  const [showSendForm, setShowSendForm] = useState(false);
-  const [showReceiveForm, setShowReceiveForm] = useState(false);
-
-  useEffect(() => {
-    if (user?.bitnobWalletId) {
-      dispatch(fetchTransactionHistory(user.bitnobWalletId));
-    }
-  }, [dispatch, user]);
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Digital Wallet</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">My Wallet</h1>
         <p className="text-gray-600">
-          Powered by Bitnob - Bitcoin, Lightning, USDT, Cross-border & Virtual Cards
+          Manage your SACCO savings and view your financial overview
         </p>
       </div>
       
-      {/* Enhanced Wallet Dashboard with all Bitnob services */}
-      <WalletDashboard />
-      
-      {/* Additional Legacy Wallet Features */}
-      <div className="mt-8 space-y-6">
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button 
-              onClick={() => setShowSendForm(true)}
-              className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <svg className="w-8 h-8 text-blue-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-              <span className="text-sm font-medium text-gray-900">Send Bitcoin</span>
-            </button>
+      <SimplifiedWalletDashboard />
+    </div>
+  );
+}
             
             <button 
               onClick={() => setShowReceiveForm(true)}
