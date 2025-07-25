@@ -14,8 +14,7 @@ async function testBitnobEndpoints() {
   console.log('🔍 Comprehensive Bitnob API Test');
   console.log('================================');
   console.log(`📍 Base URL: ${process.env.BITNOB_BASE_URL}`);
-  console.log(`🆔 Client ID: ${process.env.BITNOB_CLIENT_ID}`);
-  console.log(`🔐 Secret Key: ${process.env.BITNOB_SECRET_KEY ? process.env.BITNOB_SECRET_KEY.substring(0, 20) + '...' : 'NOT SET'}`);
+  console.log(`🔐 Secret Key: ${process.env.BITNOB_SECRET_KEY ? '***configured***' : '❌ NOT SET'}`);
   console.log('');
 
   const timestamp = Date.now().toString();
@@ -44,12 +43,10 @@ async function testBitnobEndpoints() {
         method: test.method.toLowerCase(),
         url: `${process.env.BITNOB_BASE_URL}${test.path}`,
         headers: {
-          'x-auth-client': process.env.BITNOB_CLIENT_ID,
+          'Content-Type': 'application/json',
           'x-auth-timestamp': timestamp,
           'x-auth-nonce': nonce,
           'x-auth-signature': signature,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         timeout: 2000, // 2 second timeout
         validateStatus: function (status) {

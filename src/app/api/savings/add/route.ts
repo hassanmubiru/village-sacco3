@@ -37,51 +37,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get or create personal savings record
-    let { data: savings, error: savingsError } = await supabase
-      .from('personal_savings')
+    // Get or create savings account for this user and group
+    let { data: savingsAccount, error: savingsError } = await supabase
+      .from('savings_accounts')
       .select('*')
       .eq('user_id', userId)
       .eq('sacco_group_id', groupId)
+      .eq('account_type', 'group')
       .single();
 
     if (savingsError && savingsError.code === 'PGRST116') {
-      // Create new savings record
-      const { data: newSavings, error: createError } = await supabase
-        .from('personal_savings')
+      // Create new savings account
+      const { data: newAccount, error: createError } = await supabase
+        .from('savings_accounts')
         .insert({
           user_id: userId,
           sacco_group_id: groupId,
+          account_type: 'group',
           balance: 0,
-          total_contributions: 0,
-          interest_earned: 0
+          btc_balance: 0,
+          interest_rate: 2.5 // Default interest rate
         })
         .select()
         .single();
 
       if (createError) {
-        console.error('Error creating savings record:', createError);
+        console.error('Error creating savings account:', createError);
         return NextResponse.json(
-          { error: 'Failed to create savings record' },
+          { error: 'Failed to create savings account' },
           { status: 500 }
         );
       }
-      savings = newSavings;
+      savingsAccount = newAccount;
     }
 
-    // Create transaction record
-    const transactionReference = `savings_${groupId}_${userId}_${Date.now()}`;
-    
+    // Create transaction record in the transactions table
     const { data: transaction, error: transactionError } = await supabase
-      .from('savings_transactions')
+      .from('transactions')
       .insert({
         user_id: userId,
         sacco_group_id: groupId,
-        amount: amount,
         type: 'deposit',
+        amount: amount,
+        currency: 'UGX',
         status: 'completed', // In real implementation, this would be 'pending' until payment is confirmed
         description: description || `Savings deposit of UGX ${amount.toLocaleString()}`,
-        reference: transactionReference
+        payment_method: 'mobile_money' // Default payment method
       })
       .select()
       .single();
@@ -94,24 +95,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update savings balance and total contributions
+    // Update savings account balance
+    const newBalance = savingsAccount.balance + amount;
     const { data: updatedSavings, error: updateError } = await supabase
-      .from('personal_savings')
+      .from('savings_accounts')
       .update({
-        balance: savings.balance + amount,
-        total_contributions: savings.total_contributions + amount,
-        last_contribution_date: new Date().toISOString()
+        balance: newBalance,
+        updated_at: new Date().toISOString()
       })
-      .eq('id', savings.id)
+      .eq('id', savingsAccount.id)
       .select()
       .single();
 
     if (updateError) {
-      console.error('Error updating savings:', updateError);
+      console.error('Error updating savings account:', updateError);
       return NextResponse.json(
-        { error: 'Failed to update savings' },
+        { error: 'Failed to update savings account' },
         { status: 500 }
       );
+    }
+
+    // Update membership total contributions
+    const { error: membershipUpdateError } = await supabase
+      .from('sacco_memberships')
+      .update({
+        total_contributions: membership.total_contributions + amount,
+        last_contribution_date: new Date().toISOString()
+      })
+      .eq('id', membership.id);
+
+    if (membershipUpdateError) {
+      console.error('Error updating membership:', membershipUpdateError);
+      // Don't fail the request if membership update fails
     }
 
     return NextResponse.json({

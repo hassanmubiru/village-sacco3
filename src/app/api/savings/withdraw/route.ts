@@ -21,15 +21,32 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabaseClient();
 
-    // Get personal savings record
-    const { data: savings, error: savingsError } = await supabase
-      .from('personal_savings')
+    // Check if user is an approved member
+    const { data: membership } = await supabase
+      .from('sacco_memberships')
+      .select('*')
+      .eq('sacco_group_id', groupId)
+      .eq('user_id', userId)
+      .eq('status', 'approved')
+      .single();
+
+    if (!membership) {
+      return NextResponse.json(
+        { error: 'You must be an approved member to withdraw savings' },
+        { status: 403 }
+      );
+    }
+
+    // Get savings account
+    const { data: savingsAccount, error: savingsError } = await supabase
+      .from('savings_accounts')
       .select('*')
       .eq('user_id', userId)
       .eq('sacco_group_id', groupId)
+      .eq('account_type', 'group')
       .single();
 
-    if (savingsError || !savings) {
+    if (savingsError || !savingsAccount) {
       return NextResponse.json(
         { error: 'Savings account not found' },
         { status: 404 }
@@ -37,26 +54,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has sufficient balance
-    if (savings.balance < amount) {
+    if (savingsAccount.balance < amount) {
       return NextResponse.json(
-        { error: `Insufficient balance. Available: UGX ${savings.balance.toLocaleString()}` },
+        { error: `Insufficient balance. Available: UGX ${savingsAccount.balance.toLocaleString()}` },
         { status: 400 }
       );
     }
 
     // Create withdrawal transaction record
-    const transactionReference = `withdrawal_${groupId}_${userId}_${Date.now()}`;
-    
     const { data: transaction, error: transactionError } = await supabase
-      .from('savings_transactions')
+      .from('transactions')
       .insert({
         user_id: userId,
         sacco_group_id: groupId,
-        amount: amount,
         type: 'withdrawal',
+        amount: amount,
+        currency: 'UGX',
         status: 'completed', // In real implementation, this might be 'pending' for approval
         description: description || `Savings withdrawal of UGX ${amount.toLocaleString()}`,
-        reference: transactionReference
+        payment_method: 'mobile_money' // Default payment method
       })
       .select()
       .single();
@@ -69,20 +85,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update savings balance
+    // Update savings account balance
+    const newBalance = savingsAccount.balance - amount;
     const { data: updatedSavings, error: updateError } = await supabase
-      .from('personal_savings')
+      .from('savings_accounts')
       .update({
-        balance: savings.balance - amount
+        balance: newBalance,
+        updated_at: new Date().toISOString()
       })
-      .eq('id', savings.id)
+      .eq('id', savingsAccount.id)
       .select()
       .single();
 
     if (updateError) {
-      console.error('Error updating savings:', updateError);
+      console.error('Error updating savings account:', updateError);
       return NextResponse.json(
-        { error: 'Failed to update savings' },
+        { error: 'Failed to update savings account' },
         { status: 500 }
       );
     }

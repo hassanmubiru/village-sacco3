@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { fetchTransactionHistory } from '../../../store/slices/walletSlice';
-import { EnhancedWalletDashboard } from '../../../components/wallet/EnhancedWalletDashboard';
+import { WalletDashboard } from '../../../components/wallet/WalletDashboard';
 import { WalletBalance } from '../../../components/wallet/WalletComponents';
 import { SendPaymentForm, ReceivePaymentForm } from '../../../components/wallet/WalletComponents';
 import { formatBTC, formatCurrency, formatTimeAgo, formatTransactionStatus, truncateHash } from '../../../utils/bitnob.utils';
@@ -31,7 +31,7 @@ export default function WalletPage() {
       </div>
       
       {/* Enhanced Wallet Dashboard with all Bitnob services */}
-      <EnhancedWalletDashboard />
+      <WalletDashboard />
       
       {/* Additional Legacy Wallet Features */}
       <div className="mt-8 space-y-6">
