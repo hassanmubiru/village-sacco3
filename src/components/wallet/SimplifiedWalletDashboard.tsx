@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAppSelector } from '../../store/hooks';
+import { VirtualCard } from './VirtualCard';
 import Link from 'next/link';
 
 interface SavingsData {
@@ -11,6 +12,16 @@ interface SavingsData {
   lastContribution?: string;
 }
 
+interface VirtualCardData {
+  id: string;
+  cardNumber: string;
+  holderName: string;
+  expiryDate: string;
+  cvv: string;
+  balance: number;
+  status: 'active' | 'blocked' | 'pending';
+}
+
 export const SimplifiedWalletDashboard: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth);
   const [savingsData, setSavingsData] = useState<SavingsData>({
@@ -18,12 +29,14 @@ export const SimplifiedWalletDashboard: React.FC = () => {
     totalContributions: 0,
     groupCount: 0
   });
+  const [virtualCard, setVirtualCard] = useState<VirtualCardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.id) {
       fetchSavingsData();
+      fetchVirtualCard();
     }
   }, [user]);
 
@@ -56,6 +69,72 @@ export const SimplifiedWalletDashboard: React.FC = () => {
       setError('Failed to load savings data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchVirtualCard = async () => {
+    try {
+      const response = await fetch(`/api/virtual-cards?userId=${user?.id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch virtual card');
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.cards.length > 0) {
+        const card = data.cards[0];
+        setVirtualCard({
+          id: card.id,
+          cardNumber: card.card_number,
+          holderName: card.holder_name,
+          expiryDate: card.expiry_date,
+          cvv: card.cvv,
+          balance: card.balance,
+          status: card.status
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching virtual card:', err);
+    }
+  };
+
+  const createVirtualCard = async () => {
+    try {
+      const holderName = `${user?.first_name || ''} ${user?.last_name || ''}`.trim() || user?.name || 'SACCO Member';
+      
+      const response = await fetch('/api/virtual-cards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          holderName: holderName
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create virtual card');
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        const card = data.card;
+        setVirtualCard({
+          id: card.id,
+          cardNumber: card.card_number,
+          holderName: card.holder_name,
+          expiryDate: card.expiry_date,
+          cvv: card.cvv,
+          balance: card.balance,
+          status: card.status
+        });
+      }
+    } catch (err) {
+      console.error('Error creating virtual card:', err);
+      setError('Failed to create virtual card');
     }
   };
 
@@ -163,6 +242,12 @@ export const SimplifiedWalletDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Virtual Card Section */}
+      <VirtualCard 
+        card={virtualCard || undefined}
+        onCreateCard={createVirtualCard}
+      />
 
       {/* Quick Actions */}
       <div className="bg-white rounded-lg shadow-md p-6">
