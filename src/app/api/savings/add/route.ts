@@ -5,6 +5,8 @@ export async function POST(request: NextRequest) {
   try {
     const { userId, groupId, amount, description } = await request.json();
 
+    console.log('Add Savings Request:', { userId, groupId, amount, description });
+
     if (!userId || !groupId || !amount) {
       return NextResponse.json(
         { error: 'User ID, Group ID, and amount are required' },
@@ -21,18 +23,45 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerSupabaseClient();
 
-    // Check if user is an approved member
-    const { data: membership } = await supabase
+    // First check if the SACCO group exists
+    const { data: group, error: groupError } = await supabase
+      .from('sacco_groups')
+      .select('*')
+      .eq('id', groupId)
+      .single();
+
+    if (groupError || !group) {
+      console.error('SACCO group not found:', groupError);
+      return NextResponse.json(
+        { error: 'SACCO group not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if user is a member (any status)
+    const { data: membership, error: membershipError } = await supabase
       .from('sacco_memberships')
       .select('*')
       .eq('sacco_group_id', groupId)
       .eq('user_id', userId)
-      .eq('status', 'approved')
       .single();
 
-    if (!membership) {
+    console.log('Membership check:', { membership, membershipError });
+
+    if (membershipError || !membership) {
       return NextResponse.json(
-        { error: 'You must be an approved member to add savings' },
+        { error: 'You must be a member of this SACCO group to add savings. Please join the group first.' },
+        { status: 403 }
+      );
+    }
+
+    // Check if membership is approved
+    if (membership.status !== 'approved') {
+      return NextResponse.json(
+        { 
+          error: `Your membership is ${membership.status}. Only approved members can add savings.`,
+          membershipStatus: membership.status 
+        },
         { status: 403 }
       );
     }
@@ -48,6 +77,7 @@ export async function POST(request: NextRequest) {
 
     if (savingsError && savingsError.code === 'PGRST116') {
       // Create new savings account
+      console.log('Creating new savings account for user:', userId);
       const { data: newAccount, error: createError } = await supabase
         .from('savings_accounts')
         .insert({
@@ -56,7 +86,7 @@ export async function POST(request: NextRequest) {
           account_type: 'group',
           balance: 0,
           btc_balance: 0,
-          interest_rate: 2.5 // Default interest rate
+          interest_rate: group.interest_rate || 2.5
         })
         .select()
         .single();
@@ -69,6 +99,12 @@ export async function POST(request: NextRequest) {
         );
       }
       savingsAccount = newAccount;
+    } else if (savingsError) {
+      console.error('Error fetching savings account:', savingsError);
+      return NextResponse.json(
+        { error: 'Failed to access savings account' },
+        { status: 500 }
+      );
     }
 
     // Create transaction record in the transactions table
@@ -119,7 +155,7 @@ export async function POST(request: NextRequest) {
     const { error: membershipUpdateError } = await supabase
       .from('sacco_memberships')
       .update({
-        total_contributions: membership.total_contributions + amount,
+        total_contributions: (membership.total_contributions || 0) + amount,
         last_contribution_date: new Date().toISOString()
       })
       .eq('id', membership.id);
@@ -128,6 +164,12 @@ export async function POST(request: NextRequest) {
       console.error('Error updating membership:', membershipUpdateError);
       // Don't fail the request if membership update fails
     }
+
+    console.log('Savings added successfully:', { 
+      newBalance, 
+      transactionId: transaction.id,
+      totalContributions: (membership.total_contributions || 0) + amount
+    });
 
     return NextResponse.json({
       success: true,

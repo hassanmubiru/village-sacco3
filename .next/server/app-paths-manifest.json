@@ -1,5 +1,8 @@
 {
-  "/api/savings/add/route": "app/api/savings/add/route.js",
-  "/page": "app/page.js",
-  "/login/page": "app/login/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/login/page": "app/login/page.js",
+  "/test-savings/page": "app/test-savings/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/sacco/page": "app/(dashboard)/sacco/page.js",
+  "/(dashboard)/transactions/page": "app/(dashboard)/transactions/page.js"
 }

@@ -3,9 +3,16 @@ import { createServerSupabaseClient } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
-    const { groupId, amount, userId } = await request.json();
+    const body = await request.json();
+    console.log('Deposit API received:', body);
+    
+    const { groupId, saccoGroupId, amount, userId } = body;
+    
+    // Accept either groupId or saccoGroupId (frontend compatibility)
+    const actualGroupId = groupId || saccoGroupId;
 
-    if (!groupId || !amount || !userId) {
+    if (!actualGroupId || !amount || !userId) {
+      console.log('Missing required fields:', { actualGroupId, amount, userId });
       return NextResponse.json(
         { error: 'Group ID, amount, and user ID are required' },
         { status: 400 }
@@ -26,12 +33,13 @@ export async function POST(request: NextRequest) {
     const { data: membership } = await supabase
       .from('sacco_memberships')
       .select('*')
-      .eq('sacco_group_id', groupId)
+      .eq('sacco_group_id', actualGroupId)
       .eq('user_id', userId)
       .eq('status', 'approved')
       .single();
 
     if (!membership) {
+      console.log('User not found or not approved in group:', { userId, actualGroupId });
       return NextResponse.json(
         { error: 'You must be an approved member to make deposits' },
         { status: 403 }
@@ -48,7 +56,7 @@ export async function POST(request: NextRequest) {
       currency: 'UGX',
       status: 'pending',
       payment_url: `https://checkout.bitnob.com/pay/${Date.now()}`,
-      reference: `sacco_${groupId}_${userId}_${Date.now()}`,
+      reference: `sacco_${actualGroupId}_${userId}_${Date.now()}`,
       created_at: new Date().toISOString()
     };
 
@@ -57,7 +65,7 @@ export async function POST(request: NextRequest) {
       .from('transactions')
       .insert({
         user_id: userId,
-        sacco_group_id: groupId,
+        sacco_group_id: actualGroupId,
         type: 'deposit',
         amount: amount,
         status: 'pending',
