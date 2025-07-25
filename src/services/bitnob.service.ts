@@ -4,7 +4,8 @@
  */
 
 export interface BitnobConfig {
-  apiKey: string;
+  clientId: string;
+  secretKey: string;
   environment: 'sandbox' | 'production';
   baseURL?: string;
 }
@@ -92,12 +93,27 @@ export class BitnobService {
     this.config = config;
     this.baseURL = config.baseURL || 
       (config.environment === 'production' 
-        ? 'https://api.bitnob.com' 
-        : 'https://sandboxapi.bitnob.com');
+        ? 'https://api.bitnob.com/api/v1' 
+        : 'https://sandboxapi.bitnob.com/api/v1');
+  }
+
+  private generateSignature(method: string, path: string, timestamp: string, nonce: string, body: string = ''): string {
+    const crypto = require('crypto');
+    const message = `${method}${path}${timestamp}${nonce}${body}`;
+    return crypto
+      .createHmac('sha256', this.config.secretKey)
+      .update(message)
+      .digest('hex');
   }
 
   private async makeRequest(endpoint: string, method: string = 'GET', data?: any) {
     try {
+      const crypto = require('crypto');
+      const timestamp = Date.now().toString();
+      const nonce = crypto.randomBytes(16).toString('hex');
+      const body = data ? JSON.stringify(data) : '';
+      const signature = this.generateSignature(method, endpoint, timestamp, nonce, body);
+
       // Create timeout controller
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -106,8 +122,11 @@ export class BitnobService {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`,
           'Accept': 'application/json',
+          'x-auth-client': this.config.clientId,
+          'x-auth-timestamp': timestamp,
+          'x-auth-nonce': nonce,
+          'x-auth-signature': signature,
         },
         body: data ? JSON.stringify(data) : undefined,
         signal: controller.signal,
@@ -141,9 +160,9 @@ export class BitnobService {
   // Check if Bitnob service is available
   async isServiceAvailable(): Promise<boolean> {
     try {
-      // Check if API key is configured
-      if (!this.config.apiKey) {
-        console.warn('Bitnob API key not configured');
+      // Check if credentials are configured
+      if (!this.config.clientId || !this.config.secretKey) {
+        console.warn('Bitnob credentials not configured');
         return false;
       }
 
@@ -172,10 +191,18 @@ export class BitnobService {
 
     for (const endpoint of endpoints) {
       try {
+        const crypto = require('crypto');
+        const timestamp = Date.now().toString();
+        const nonce = crypto.randomBytes(16).toString('hex');
+        const signature = this.generateSignature('GET', endpoint, timestamp, nonce);
+
         const response = await fetch(`${this.baseURL}${endpoint}`, {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${this.config.apiKey}`,
+            'x-auth-client': this.config.clientId,
+            'x-auth-timestamp': timestamp,
+            'x-auth-nonce': nonce,
+            'x-auth-signature': signature,
             'Content-Type': 'application/json',
           },
         });
@@ -318,10 +345,18 @@ export class BitnobService {
         }
       });
 
+      const crypto = require('crypto');
+      const timestamp = Date.now().toString();
+      const nonce = crypto.randomBytes(16).toString('hex');
+      const signature = this.generateSignature('POST', '/kyc/submit', timestamp, nonce);
+
       const response = await fetch(`${this.baseURL}/kyc/submit`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
+          'x-auth-client': this.config.clientId,
+          'x-auth-timestamp': timestamp,
+          'x-auth-nonce': nonce,
+          'x-auth-signature': signature,
         },
         body: formData,
       });
@@ -541,29 +576,29 @@ export class BitnobService {
 // Singleton instance for frontend use
 let bitnobServiceInstance: BitnobService | null = null;
 
-export function createBitnobService(config?: BitnobConfig): BitnobService {
-  if (!bitnobServiceInstance || config) {
-    // Use new environment variable names
-    const clientId = process.env.BITNOB_CLIENT_ID || '';
-    const secretKey = process.env.BITNOB_SECRET_KEY || '';
-    const baseURL = process.env.BITNOB_BASE_URL || '';
-    
-    // Use secret key as the API key for authentication
-    const apiKey = secretKey;
-    
-    const serviceConfig = config || {
-      apiKey,
-      environment: baseURL.includes('sandbox') ? 'sandbox' : 'production',
-      baseURL: baseURL.replace('/api/v1', ''), // Remove /api/v1 from base URL since endpoints don't use it
-    };
-
-    // Warn if API key is missing
-    if (!apiKey) {
-      console.warn('Bitnob API key not configured. Bitcoin wallet features will be disabled.');
-    }
-
-    bitnobServiceInstance = new BitnobService(serviceConfig);
+export function createBitnobService(): BitnobService {
+  if (bitnobServiceInstance) {
+    return bitnobServiceInstance;
   }
+
+  // Get configuration from environment variables
+  const clientId = process.env.NEXT_PUBLIC_BITNOB_CLIENT_ID || process.env.BITNOB_CLIENT_ID || '';
+  const secretKey = process.env.BITNOB_SECRET_KEY || '';
+  const baseURL = process.env.NEXT_PUBLIC_BITNOB_BASE_URL || process.env.BITNOB_BASE_URL || 'https://sandboxapi.bitnob.com/api/v1';
+
+  const serviceConfig: BitnobConfig = {
+    clientId,
+    secretKey,
+    environment: baseURL.includes('sandbox') ? 'sandbox' : 'production',
+    baseURL: baseURL,
+  };
+
+  // Warn if credentials are missing
+  if (!clientId || !secretKey) {
+    console.warn('Bitnob credentials not configured. Bitcoin wallet features will be disabled.');
+  }
+
+  bitnobServiceInstance = new BitnobService(serviceConfig);
 
   return bitnobServiceInstance;
 }
