@@ -1,7 +1,7 @@
 -- Create virtual_cards table (only if it doesn't exist)
 CREATE TABLE IF NOT EXISTS virtual_cards (
     id TEXT PRIMARY KEY DEFAULT 'card_' || generate_random_uuid(),
-    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     card_number TEXT NOT NULL,
     holder_name TEXT NOT NULL,
     expiry_date TEXT NOT NULL,
@@ -22,9 +22,9 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'virtual_cards' AND policyname = 'Users can view own virtual cards') THEN
         ALTER TABLE virtual_cards ENABLE ROW LEVEL SECURITY;
         
-        CREATE POLICY "Users can view own virtual cards" ON virtual_cards FOR SELECT USING (auth.uid()::text = user_id);
-        CREATE POLICY "Users can insert own virtual cards" ON virtual_cards FOR INSERT WITH CHECK (auth.uid()::text = user_id);
-        CREATE POLICY "Users can update own virtual cards" ON virtual_cards FOR UPDATE USING (auth.uid()::text = user_id);
+        CREATE POLICY "Users can view own virtual cards" ON virtual_cards FOR SELECT USING (auth.uid() = user_id);
+        CREATE POLICY "Users can insert own virtual cards" ON virtual_cards FOR INSERT WITH CHECK (auth.uid() = user_id);
+        CREATE POLICY "Users can update own virtual cards" ON virtual_cards FOR UPDATE USING (auth.uid() = user_id);
     END IF;
 END $$;
 
