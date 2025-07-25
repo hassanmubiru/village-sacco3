@@ -1,1 +1,10 @@
-{}
+{
+  "/api/sacco-groups/route": "app/api/sacco-groups/route.js",
+  "/api/bitnob/virtual-card/route": "app/api/bitnob/virtual-card/route.js",
+  "/api/dashboard/summary/route": "app/api/dashboard/summary/route.js",
+  "/api/virtual-cards/route": "app/api/virtual-cards/route.js",
+  "/login/page": "app/login/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
+  "/(dashboard)/sacco/page": "app/(dashboard)/sacco/page.js",
+  "/(dashboard)/wallet/page": "app/(dashboard)/wallet/page.js"
+}
