@@ -6,6 +6,7 @@
 export interface BitcoinAmount {
   btc: number;
   satoshis: number;
+  usdt: number; // USDT balance
   fiat: number;
   currency: string;
 }
@@ -230,8 +231,67 @@ export function normalizePhoneNumber(phone: string): string {
 }
 
 /**
- * Convert amount between currencies using exchange rates
+ * Format USDT amount for display
  */
+export function formatUSDT(amount: number, precision: number = 2): string {
+  return `$${amount.toFixed(precision)} USDT`;
+}
+
+/**
+ * Validate USDT address format for different networks
+ */
+export function isValidUSDTAddress(address: string, network: 'ethereum' | 'tron' | 'polygon'): boolean {
+  switch (network) {
+    case 'ethereum':
+    case 'polygon':
+      // ERC-20 address format
+      return /^0x[a-fA-F0-9]{40}$/.test(address);
+    case 'tron':
+      // TRC-20 address format
+      return /^T[A-Za-z1-9]{33}$/.test(address);
+    default:
+      return false;
+  }
+}
+
+/**
+ * Get supported countries for cross-border payments
+ */
+export function getSupportedCountries() {
+  return [
+    { code: 'UG', name: 'Uganda', currency: 'UGX', flag: '🇺🇬' },
+    { code: 'KE', name: 'Kenya', currency: 'KES', flag: '🇰🇪' },
+    { code: 'TZ', name: 'Tanzania', currency: 'TZS', flag: '🇹🇿' },
+    { code: 'RW', name: 'Rwanda', currency: 'RWF', flag: '🇷🇼' },
+    { code: 'NG', name: 'Nigeria', currency: 'NGN', flag: '🇳🇬' },
+    { code: 'GH', name: 'Ghana', currency: 'GHS', flag: '🇬🇭' },
+    { code: 'ZA', name: 'South Africa', currency: 'ZAR', flag: '🇿🇦' },
+  ];
+}
+
+/**
+ * Format virtual card number for display
+ */
+export function formatCardNumber(cardNumber: string, masked: boolean = true): string {
+  if (masked) {
+    const lastFour = cardNumber.slice(-4);
+    return `**** **** **** ${lastFour}`;
+  }
+  return cardNumber.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
+ * Get card network from card number
+ */
+export function getCardNetwork(cardNumber: string): string {
+  const firstDigit = cardNumber.charAt(0);
+  const firstTwoDigits = parseInt(cardNumber.substring(0, 2));
+  
+  if (firstDigit === '4') return 'Visa';
+  if (firstTwoDigits >= 51 && firstTwoDigits <= 55) return 'Mastercard';
+  if (firstTwoDigits >= 34 && firstTwoDigits <= 37) return 'American Express';
+  return 'Unknown';
+}
 export function convertCurrency(
   amount: number,
   fromCurrency: string,

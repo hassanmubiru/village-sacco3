@@ -10,6 +10,7 @@ import {
 } from '../../store/slices/walletSlice';
 import { formatBTC, formatCurrency, formatTimeAgo, truncateHash } from '../../utils/bitnob.utils';
 import toast from 'react-hot-toast';
+import { USDTTransferForm, CrossBorderPaymentForm, VirtualCardManager } from './BitnobServicesComponents';
 
 interface WalletBalanceProps {
   walletId?: string;

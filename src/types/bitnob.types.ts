@@ -34,36 +34,100 @@ export interface BitnobWallet {
   balance: {
     btc: number;
     satoshis: number;
+    usdt: number; // USDT/Stablecoin balance
     fiat: number;
     currency: string;
   };
   addresses: {
     bitcoin: string;
     lightning?: string;
+    usdt?: string; // USDT address
   };
   status: 'active' | 'suspended' | 'closed';
+  crossBorderEnabled: boolean; // Cross-border payment capability
+  virtualCardEnabled: boolean; // Virtual card issuing capability
   createdAt: string;
 }
 
 export interface BitnobTransaction {
   id: string;
   walletId: string;
-  type: 'deposit' | 'withdrawal' | 'send' | 'receive';
-  method: 'lightning' | 'onchain' | 'internal';
+  type: 'deposit' | 'withdrawal' | 'send' | 'receive' | 'cross_border' | 'stablecoin_transfer' | 'card_payment';
+  method: 'lightning' | 'onchain' | 'internal' | 'usdt' | 'cross_border' | 'virtual_card';
   amount: number;
   currency: string;
   fiatAmount?: number;
   fiatCurrency?: string;
+  usdtAmount?: number; // USDT amount for stablecoin transactions
   fee: number;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
   reference: string;
   description?: string;
   recipientAddress?: string;
+  recipientCountry?: string; // For cross-border payments
   senderAddress?: string;
   blockchainTxHash?: string;
   lightningInvoice?: string;
+  virtualCardId?: string; // For card payments
+  crossBorderReference?: string; // Cross-border payment reference
   createdAt: string;
   confirmedAt?: string;
+}
+
+// Bitnob Virtual Card Types
+export interface VirtualCard {
+  id: string;
+  userId: string;
+  cardNumber: string;
+  cardHolderName: string;
+  expiryMonth: number;
+  expiryYear: number;
+  cvv: string;
+  balance: number;
+  currency: string;
+  spendingLimit: number;
+  status: 'active' | 'suspended' | 'expired' | 'blocked';
+  type: 'virtual' | 'physical';
+  bitnobCardId: string;
+  createdAt: string;
+  lastUsedAt?: string;
+}
+
+// Cross-border Payment Types
+export interface CrossBorderPayment {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  amount: number;
+  sourceCurrency: string;
+  targetCurrency: string;
+  exchangeRate: number;
+  fee: number;
+  recipientCountry: string;
+  recipientPhoneNumber?: string;
+  recipientBankAccount?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  reference: string;
+  bitnobReference: string;
+  createdAt: string;
+  completedAt?: string;
+}
+
+// USDT/Stablecoin Types
+export interface StablecoinTransaction {
+  id: string;
+  walletId: string;
+  type: 'mint' | 'burn' | 'transfer';
+  amount: number;
+  usdtAmount: number;
+  exchangeRate: number;
+  fee: number;
+  recipientAddress?: string;
+  blockchainNetwork: 'ethereum' | 'tron' | 'polygon';
+  txHash?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  reference: string;
+  createdAt: string;
 }
 
 // SACCO Group Types

@@ -23,3 +23,26 @@ Client ID
 25b14d45-273f-4d10-9847-1887286025dc
 
 pk.f4621acc0d17.3df86165d4d54f586e243b716
+
+
+hsk.bc076374144a.6bd44474c37ab9761656ac561
+Client ID
+
+32e2d266-d3bd-4921-994c-67657c794363
+
+sk.4335f48750db.39a77a54872e7c5900e1da22a
+
+
+Client ID
+fbf34422b0a1e49f8a8c 
+Client secret
+4c354b0ce0684d9366f774e1554bc71af38d14b2
+
+Hmac Key Secret
+Please copy this key and save it somewhere safe.
+
+For security reasons, we cannot show you the hmac secret again
+hsk.7359e40fd856.3295ff92343097a6bafc4d4b4
+Client ID
+
+32e2d266-d3bd-4921-994c-67657c794363

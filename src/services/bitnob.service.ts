@@ -56,6 +56,34 @@ export interface ConversionData {
   reference: string;
 }
 
+// New Bitnob Service Types
+export interface StablecoinData {
+  amount: number;
+  currency: string;
+  targetNetwork: 'ethereum' | 'tron' | 'polygon';
+  recipientAddress?: string;
+  reference: string;
+}
+
+export interface CrossBorderPaymentData {
+  amount: number;
+  sourceCurrency: string;
+  targetCurrency: string;
+  recipientCountry: string;
+  recipientPhoneNumber?: string;
+  recipientBankAccount?: string;
+  reference: string;
+  description?: string;
+}
+
+export interface VirtualCardData {
+  userId: string;
+  cardHolderName: string;
+  spendingLimit: number;
+  currency: string;
+  type: 'virtual' | 'physical';
+}
+
 export class BitnobService {
   private config: BitnobConfig;
   private baseURL: string;
@@ -382,6 +410,120 @@ export class BitnobService {
     } catch (error) {
       console.error('Webhook signature verification failed:', error);
       return false;
+    }
+  }
+
+  // USDT/Stablecoin Operations
+  async sendUSDT(stablecoinData: StablecoinData) {
+    try {
+      const response = await this.makeRequest('/stablecoins/usdt/send', 'POST', {
+        amount: stablecoinData.amount,
+        currency: stablecoinData.currency,
+        targetNetwork: stablecoinData.targetNetwork,
+        recipientAddress: stablecoinData.recipientAddress,
+        reference: stablecoinData.reference,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`USDT transfer failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async convertToUSDT(conversionData: ConversionData) {
+    try {
+      const response = await this.makeRequest('/stablecoins/convert', 'POST', {
+        amount: conversionData.amount,
+        fromCurrency: conversionData.fromCurrency,
+        toCurrency: 'USDT',
+        reference: conversionData.reference,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`USDT conversion failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Cross-border Payment Operations
+  async sendCrossBorderPayment(paymentData: CrossBorderPaymentData) {
+    try {
+      const response = await this.makeRequest('/cross-border/send', 'POST', {
+        amount: paymentData.amount,
+        sourceCurrency: paymentData.sourceCurrency,
+        targetCurrency: paymentData.targetCurrency,
+        recipientCountry: paymentData.recipientCountry,
+        recipientPhoneNumber: paymentData.recipientPhoneNumber,
+        recipientBankAccount: paymentData.recipientBankAccount,
+        reference: paymentData.reference,
+        description: paymentData.description || 'SACCO Cross-border Payment',
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Cross-border payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getCrossBorderRates(sourceCurrency: string, targetCurrency: string, recipientCountry: string) {
+    try {
+      const response = await this.makeRequest(
+        `/cross-border/rates?source=${sourceCurrency}&target=${targetCurrency}&country=${recipientCountry}`
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to get cross-border rates: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // Virtual Card Operations
+  async createVirtualCard(cardData: VirtualCardData) {
+    try {
+      const response = await this.makeRequest('/virtual-cards/create', 'POST', {
+        userId: cardData.userId,
+        cardHolderName: cardData.cardHolderName,
+        spendingLimit: cardData.spendingLimit,
+        currency: cardData.currency,
+        type: cardData.type,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Virtual card creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async getVirtualCards(userId: string) {
+    try {
+      const response = await this.makeRequest(`/virtual-cards/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to get virtual cards: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async updateCardLimit(cardId: string, newLimit: number) {
+    try {
+      const response = await this.makeRequest(`/virtual-cards/${cardId}/limit`, 'PUT', {
+        spendingLimit: newLimit,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to update card limit: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async freezeCard(cardId: string) {
+    try {
+      const response = await this.makeRequest(`/virtual-cards/${cardId}/freeze`, 'POST');
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to freeze card: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async unfreezeCard(cardId: string) {
+    try {
+      const response = await this.makeRequest(`/virtual-cards/${cardId}/unfreeze`, 'POST');
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to unfreeze card: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
